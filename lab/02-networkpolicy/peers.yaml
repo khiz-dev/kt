@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: trusted
+  labels:
+    team: trusted
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: untrusted
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: trusted
+  namespace: trusted
+  labels:
+    app: trusted
+spec:
+  containers:
+    - name: curl
+      image: curlimages/curl:latest
+      command: ["sleep", "infinity"]
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: evil
+  namespace: untrusted
+  labels:
+    app: evil
+spec:
+  containers:
+    - name: curl
+      image: curlimages/curl:latest
+      command: ["sleep", "infinity"]

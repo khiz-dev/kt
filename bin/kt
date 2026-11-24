@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# Entry point for the interactive Kubernetes networking course.
+# Resolves symlinks so `kt` works after being linked onto PATH.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
+exec node "$ROOT/cli.js" "$@"

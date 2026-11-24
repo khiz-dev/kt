@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: l7-nginx-conf
+  namespace: net-lab
+data:
+  default.conf: |
+    server {
+      listen 80;
+      server_name _;
+      location = /public { return 200 "public\n"; }
+      location = /admin  { return 200 "admin\n"; }
+      location /         { return 404 "not found\n"; }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: l7
+  namespace: net-lab
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: l7
+  template:
+    metadata:
+      labels:
+        app: l7
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          volumeMounts:
+            - name: conf
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+      volumes:
+        - name: conf
+          configMap:
+            name: l7-nginx-conf
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: l7
+  namespace: net-lab
+spec:
+  selector:
+    app: l7
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: l7-public-only
+  namespace: net-lab
+spec:
+  endpointSelector:
+    matchLabels:
+      app: l7
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app: client
+      toPorts:
+        - ports:
+            - port: "80"
+              protocol: TCP
+          rules:
+            http:
+              - method: GET
+                path: /public

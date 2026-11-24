@@ -1,0 +1,10 @@
+# Downloaded locally by the Istio lesson
+bin/istioctl
+bin/istioctl.tar.gz
+
+# Per-learner state
+.kt-progress.json
+
+# OS noise
+.DS_Store
+*.log
