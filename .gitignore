@@ -1,3 +1,7 @@
+# Built by bin/kt on first run
+bin/kt-bin
+/kt
+
 # Downloaded locally by the Istio lesson
 bin/istioctl
 bin/istioctl.tar.gz

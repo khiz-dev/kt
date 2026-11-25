@@ -12,8 +12,14 @@ You ──► kt ──► kubectl --context kind-k8s-net-lab ──► 3-node k
 ## Prerequisites
 
 - macOS with **Docker/OrbStack** (give Docker at least **8 GB RAM**)
-- `kind`, `kubectl`, `helm`, `curl`, `python3`, `docker`
+- **Go 1.24+** — `bin/kt` builds the CLI itself on first run
+- `kind`, `kubectl`, `helm`, `curl`, `docker`
 - No sudo required; tools are installed locally under `bin/`
+
+The terminal UI uses the Charmbracelet stack: Bubble Tea for interactive menus,
+Bubbles for animated spinners, Lip Gloss for styling, and Glamour — the Markdown
+renderer behind [Glow](https://github.com/charmbracelet/glow) — for polished
+lesson explanations.
 
 ## Quick start
 
@@ -23,7 +29,7 @@ cd "$(dirname "$0")"
 # First time only: build the 3-node cluster with Cilium as the CNI.
 ./cluster/bootstrap.sh
 
-# Start the interactive course.
+# Start the interactive course (Go binary is built automatically).
 ./bin/kt
 ```
 
@@ -62,19 +68,27 @@ lesson only counts once every real check passes.
 | 5 | Istio | A mesh moves Envoy into every pod. Easier once you already understand one Envoy. |
 | 6 | LoadBalancer | External exposure makes sense only after internal routing is clear. |
 
-Each lesson has: the idea, a diagram, guided commands, a concrete task, hints,
-a solution, live verification, and a takeaway. Cleanup is built into the
-lessons that install Envoy Gateway and Istio so you do not run both control
-planes at once.
+Each lesson has: the idea, a diagram, commands **you run yourself**, an
+explanation of what the output means, a concrete task, hints, a solution, live
+verification, and a takeaway. Press `r` on a step if you want `kt` to run it for
+you. Cleanup is built into the lessons that install Envoy Gateway and Istio so
+you do not run both control planes at once.
 
 ## Layout
 
 ```
 k8s-net-lab/
 ├── bin/
-│   ├── kt                  # CLI entry point
+│   ├── kt                  # launcher: builds and runs the Go CLI
+│   ├── kt-bin              # built binary (ignored)
 │   └── istioctl            # downloaded locally by the Istio lesson
-├── cli.js / lib/           # command router, lesson content, UI, progress, checks
+├── main.go                 # CLI commands and guided lesson flow
+├── lessons_data.go         # 7 chapters / 30 lessons / 92 guided steps
+├── verifiers.go            # 78 live cluster checks
+├── progress.go             # .kt-progress.json persistence
+├── ui.go                   # Bubble Tea menus, spinners, Glamour explanations
+├── types.go                # shared data types
+├── go.mod / go.sum
 ├── kind-config.yaml        # 3 nodes, kindnet disabled, host ports 30080/30081/30443
 ├── cluster/
 │   ├── bootstrap.sh        # recreate cluster + install Cilium 1.20.5

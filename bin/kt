@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Entry point for the interactive Kubernetes networking course.
 # Resolves symlinks so `kt` works after being linked onto PATH.
+set -euo pipefail
+
 SOURCE="${BASH_SOURCE[0]}"
 while [ -h "$SOURCE" ]; do
   DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
@@ -8,4 +10,19 @@ while [ -h "$SOURCE" ]; do
   [[ "$SOURCE" != /* ]] && SOURCE="$DIR/$SOURCE"
 done
 ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd)"
-exec node "$ROOT/cli.js" "$@"
+
+BIN="$ROOT/bin/kt-bin"
+needs_build=0
+if [ ! -x "$BIN" ]; then
+  needs_build=1
+elif [ "$ROOT/go.mod" -nt "$BIN" ] || [ "$ROOT/go.sum" -nt "$BIN" ]; then
+  needs_build=1
+elif find "$ROOT" -maxdepth 2 -name '*.go' -newer "$BIN" -print -quit | grep -q .; then
+  needs_build=1
+fi
+
+if [ "$needs_build" -eq 1 ]; then
+  (cd "$ROOT" && env -u GOROOT go build -o "$BIN" .) >&2
+fi
+
+exec "$BIN" "$@"
